@@ -1,8 +1,6 @@
 # bilibilirecorder
 
-**Clone and run for a quick way to see Electron in action.**
-
-This is an Electron application used to record live of [bilibili](https://live.bilibili.com)
+**This is an Electron application used to record live of [bilibili](https://live.bilibili.com)**
 
 **This app is very easy to understand. I wrote it for I saw somebody sold the same app.**
 
