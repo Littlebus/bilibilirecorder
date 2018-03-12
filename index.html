@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <div class="container-fluid">
+    <div class="bd-example">
+        <div class="jumbotron p-3 p-md-5 text-white rounded bg-dark">
+        <div class="col-md-12 px-0">
+            <h1 class="display-4 font-italic">BILIBILI RECORDER</h1>
+            <label for="basic-url">输入直播间ID</label>
+
+            <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">https://live.bilibili.com/</span>
+            </div>
+            <input type="text" class="form-control" placeholder="主播的房间号😄" aria-label="Recipient's username" aria-describedby="basic-addon2" id="add_room">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="addRoom()">添加</button>
+            </div>
+            </div>
+            <p class="lead my-3">录播列表</p>
+            <table class="table">
+            <thead>
+                <tr>
+                <th scope="col">房间号</th>
+                <th scope="col">房间名</th>
+                <th scope="col">主播</th>
+                <th scope="col">操作</th>
+                </tr>
+            </thead>
+            <tbody id="record_list">
+            </tbody>
+            </table>
+
+
+ 
+            <!-- <p class="lead mb-0"><a href="#" class="text-white font-weight-bold">Continue reading...</a></p> -->
+            
+        </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container text-center">
+            <span class="text-muted">Copyright © oscarshaw.club 2018. All Rights Reserved</span>
+        </div>
+    </footer>
+    </div>
+    
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script>if (window.module) module = window.module;</script>
+    <script>
+        let request = require('request')
+        let fs = require('fs')
+        let getRoomId = async roomNumber => {
+            let promise = new Promise((ac, re) => {
+                request('https://api.live.bilibili.com/room/v1/Room/room_init?id='+roomNumber, (error, response, body) => {
+                    if (!error && response.statusCode == 200) {
+                        ac(JSON.parse(body)['data']['room_id'])
+                    } else {
+                        re(error)
+                    }
+                })
+            })
+            return promise
+        }
+        let getRoomUrl = async roomId => {
+            let promise = new Promise((ac, re) => {
+                request('https://api.live.bilibili.com/room/v1/Room/playUrl?quality=0&platform=web&cid='+roomId, (error, response, body) => {
+                    if (!error && response.statusCode == 200) {
+                        ac(JSON.parse(body)['data']['durl'][0]['url'])
+                    } else {
+                        re(error)
+                    }
+                })
+            })
+            return promise
+        }
+        let getName = async roomId => {
+            let promise = new Promise((ac, re) => {
+                request('https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room?roomid='+roomId, (error, response, body) => {
+                    if (!error && response.statusCode == 200) {
+                        ac(JSON.parse(body)['data']['info']['uname'])
+                    } else {
+                        re(error)
+                    }
+                })
+            })
+            return promise
+        }
+        let getRoomName = async roomId => {
+            let promise = new Promise((ac, re) => {
+                request('https://api.live.bilibili.com/room/v1/Room/get_info?from=room&room_id='+roomId, (error, response, body) => {
+                    if (!error && response.statusCode == 200) {
+                        ac(JSON.parse(body)['data']['title'])
+                    } else {
+                        re(error)
+                    }
+                })
+            })
+            return promise
+        }
+        let addRoom = async function(){
+            let roomnumber = $("#add_room").val()
+            let roomid = await getRoomId(roomnumber)
+            let roomUrl = await getRoomUrl(roomid)
+            let name = await getName(roomid)
+            let roomName = await getRoomName(roomid)
+            let oDate = new Date()
+            if(!fs.existsSync(`${roomnumber}`)){
+                fs.mkdirSync(`${roomnumber}`)
+            }
+            request(roomUrl).pipe(fs.createWriteStream(`${roomnumber}/${oDate.getFullYear()}${oDate.getMonth()+1}${oDate.getDate()}_${oDate.getHours()}${oDate.getMinutes()}${oDate.getSeconds()}`))
+            $('#record_list').append(`<tr><th scope="row">${roomnumber}</th><td>${roomName}</td><td>${name}</td><td><button type="button" class="btn btn-danger">删除</button></td></tr>`)
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+    <style>
+    .container {
+      margin: 1em 3em 0em 3em;
+      background:#DDDDDD;
+      border: 1px #DADADA solid;
+      box-shadow: 1px;
+      border-radius: 0.5em
+    }
+    .header {
+      padding: 0em 1em 0.5em 1em;
+      margin: 0.5em 0em 0em 0em;
+      background: #DADADA
+    }
+    .content {
+      /* border: 1px solid; */
+      border-radius: 0em 0em 0.5em 0.5em;
+      margin: 0em;
+      background: #FFFFFF
+    }
+    .title {
+      margin: 0em;
+      padding: 0.5em 1em 0.5em 1em;
+      font-weight: bold;
+    }
+    .formtext,.formbutton {
+      margin: 0em 1em 1em 1em;
+    }
+    </style>
+    <script>
+      let request = require('request')
+      
+      function addRoom() {
+        let newItem = document.createElement('li')
+        let roomNumber = document.getElementById('roomId').value
+        newItem.innerHTML = document.getElementById('roomId').value
+        roomStatus(roomNumber, function(result) {
+          if(result == 1){
+            console.log('yes')
+            getLiveUrl(roomNumber, console.log)
+          }
+        })
+        document.getElementById('recordingList').appendChild(newItem)
+      }
+    </script>
+  </head>
+  <body style="background:#FFFFFF">
+    <div class="container">
+      <div class="header">添加直播间</div>
+      <div class="content">
+        <p class="title">输入直播间id</p>
+        <form>
+          <input type="number" id="roomId" class="formtext" size="70"/>
+          <input type="button" id="add_room" class="formbutton" value="添加" onclick="addRoom()"></input>
+        </form>
+      </div>
+    </div>
+    <div class="container">
+      <div class="header">直播间列表</div>
+      <div class="content">
+        <p class="title">直播间ID</p>
+        <ol id="recordingList" style="margin:0px">
+        </ol>
+      </div>
+    </div>
+
+    <script>
+    </script>
+  </body>
+</html>
+
+https://api.live.bilibili.com/room/v1/Room/playUrl?cid=1455691&quality=0&platform=web
+https://api.live.bilibili.com/room/v1/Room/room_init?id=1455691
